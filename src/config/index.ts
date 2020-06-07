@@ -1,4 +1,4 @@
-import {IConfig} from '../types/config.d'
+import {IConfig} from '../types/config'
 
 export class Config implements IConfig {
   signalingHost: string

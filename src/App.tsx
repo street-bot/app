@@ -2,23 +2,25 @@ import React from 'react';
 import './App.css';
 import { printBanner } from './lib/banner';
 import { Config } from './config';
-import {WebSocketClient} from './lib/websocket'
+import {WebSocketClient} from './lib/websocket';
+
 class App extends React.Component {
   config: Config
-  rt: WebSocketClient
+  wsc: WebSocketClient
 
   constructor(props: any) {
     super(props);
     this.config = new Config();
-    this.rt = new WebSocketClient(this.config.signalingHost);
+    this.wsc = new WebSocketClient(this.config.signalingHost);
   }
-  
+
   public componentDidMount() {
-    this.rt.registerClient();
     printBanner(this.config.versionHash);
+    this.wsc.connectWS();
   }
 
   public componentWillUnmount() {
+    this.wsc.close()
   }
 
   public render() {
