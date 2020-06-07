@@ -11,6 +11,7 @@ export class WebRTCClient {
 
   constructor(iceServerList: types.IICEServerConfig[]) {
     this.config = new Config();
+    this.dataChans = new Map<string, RTCDataChannel>();
     this.logger = new Logger("WebRTC", {
       LogLevel: this.config.logLevel
     });
@@ -20,18 +21,6 @@ export class WebRTCClient {
     this.pc = new RTCPeerConnection({
       iceServers: iceServerList
     });
-
-    // Register ICE transition callbacks
-    // Offer to receive 1 video track
-    this.pc.addTransceiver('video', {'direction': 'recvonly'})
-    this.pc.createOffer().then(d => this.pc.setLocalDescription(d))
-
-    this.pc.oniceconnectionstatechange = e => this.logger.Info(this.pc.iceConnectionState)
-    this.pc.onicecandidate = event => {
-      if (event.candidate === null) { // Don't recreate offer if a candidate already exists
-        this.offer = btoa(JSON.stringify(this.pc.localDescription));
-      }
-    }
   }
 
   public DataChannel(name: string): RTCDataChannel | undefined {
@@ -39,6 +28,22 @@ export class WebRTCClient {
   }
 
   public async Connect(signalConn: WebSocket) {
+    // Register ICE transition callbacks
+    // Offer to receive 1 video track
+    this.pc.addTransceiver('video', {'direction': 'recvonly'})
+    this.pc.createOffer().then(d => this.pc.setLocalDescription(d))
+    this.pc.oniceconnectionstatechange = e => this.logger.Info(this.pc.iceConnectionState)
+    this.pc.onicecandidate = event => {
+      if (event.candidate === null) { // Don't recreate offer if a candidate already exists
+        const offer = btoa(JSON.stringify(this.pc.localDescription));
+        const offerMsg = new types.OfferMsg({
+          SDPStr: offer
+        });
+
+        signalConn.send(JSON.stringify(offerMsg))
+      }
+    }
+
     this.pc.ontrack = function (event: any) {
       var el = document.createElement(event.track.kind)
       el.srcObject = event.streams[0]
@@ -47,16 +52,11 @@ export class WebRTCClient {
 
       document?.getElementById('remoteVideos')?.appendChild(el)
     }
-
-    const offerMsg = new types.OfferMsg({
-      SDPStr: this.offer
-    });
-
-    signalConn.send(JSON.stringify(offerMsg))
   }
 
   public AddDataChannel(name: string, registerCallback: (dataChan: RTCDataChannel) => void) {
     if(!this.dataChans.get(name)){
+      this.logger.Info(`Creating new data channel ${name}`);
       const newDataChan = this.pc.createDataChannel(name);
       registerCallback(newDataChan); // Let he user define the onXXX callback events
       this.dataChans.set(name, newDataChan);

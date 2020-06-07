@@ -8,6 +8,7 @@ export class ControlTerminal extends React.Component {
   wsc: WebSocketClient;
   rtc: WebRTCClient;
   config: Config;
+  dataChan: RTCDataChannel;
 
   constructor(props: any) {
     super(props);
@@ -34,6 +35,17 @@ export class ControlTerminal extends React.Component {
   }
 
   private startStream() {
+    this.rtc.AddDataChannel('control', (dataChan: RTCDataChannel) => {
+      // Register DataChannel details
+      dataChan.onclose = () => console.log('sendChannel has closed')
+      dataChan.onopen = () => {
+        console.log('sendChannel has opened')
+        dataChan.send('hello')
+        // TODO: send control state
+        // setInterval(this.sendControlState, HB_INTERVAL);
+      }
+      dataChan.onmessage = e => console.log(`Message from DataChannel '${dataChan.label}' payload '${e.data}'`)
+    });
     // Register callback to handle offer response
     this.wsc.On(types.OfferResponseMsgType, (sdpResponse: string) => {
       try {
