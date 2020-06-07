@@ -1,5 +1,6 @@
 import { Logger, ILogger } from "./logger";
 import * as types from "../types";
+import { Config } from '../config';
 
 // WebSocket client
 export class WebSocketClient {
@@ -7,11 +8,15 @@ export class WebSocketClient {
   private robotID: string;
   private host: string;
   private logger: ILogger;
+  private config: Config;
 
   constructor(host: string) {
     this.host = host;
     this.robotID = "";
-    this.logger = new Logger("WebSocketClient");
+    this.config = new Config();
+    this.logger = new Logger("WebSocketClient", {
+      LogLevel: this.config.logLevel
+    });
   }
 
   // Register a client on the Signaler
