@@ -3,17 +3,24 @@ import { WebSocketClient } from '../../lib/websocket';
 import { WebRTCClient } from '../../lib/webrtc';
 import { Config } from '../../config';
 import * as types from "../../types";
+import { Logger, ILogger } from "../../lib/logger";
+
 
 export class ControlTerminal extends React.Component {
-  wsc: WebSocketClient;
-  rtc: WebRTCClient;
-  config: Config;
-  dataChan: RTCDataChannel;
+  private wsc: WebSocketClient;
+  private rtc: WebRTCClient;
+  private config: Config;
+  private controlState: types.IControlState;
+  private logger: ILogger;
 
   constructor(props: any) {
     super(props);
     this.config = new Config();
+    this.logger = new Logger("WebSocketClient", {
+      LogLevel: this.config.logLevel
+    });
     this.wsc = new WebSocketClient(this.config.signalingHost);
+
     this.rtc = new WebRTCClient([
       {
         urls: 'stun:stun.l.google.com:19302'
@@ -24,6 +31,12 @@ export class ControlTerminal extends React.Component {
         credential: 'streetbot'
       }
     ]);
+
+    this.controlState = {
+      forward: 0,
+      right: 0,
+      speedLevel: 0
+    };
   }
 
   public componentDidMount() {
@@ -34,15 +47,21 @@ export class ControlTerminal extends React.Component {
     this.wsc.close()
   }
 
+  private sendControlState = (): void => {
+    let msg = JSON.stringify(this.controlState);
+    if (this.rtc.DataChannel('control')?.readyState === "open") {
+      this.rtc.DataChannel('control')?.send(msg);
+      this.logger.Trace(`Sent control message: ${msg}`);
+    }
+  }
+
   private startStream() {
     this.rtc.AddDataChannel('control', (dataChan: RTCDataChannel) => {
       // Register DataChannel details
-      dataChan.onclose = () => console.log('sendChannel has closed')
+      dataChan.onclose = () => this.logger.Info(`Data channel 'control' closed`)
       dataChan.onopen = () => {
-        console.log('sendChannel has opened')
-        dataChan.send('hello')
-        // TODO: send control state
-        // setInterval(this.sendControlState, HB_INTERVAL);
+        this.logger.Info(`Data channel 'control' opened`)
+        setInterval(this.sendControlState, this.config.hbInterval);
       }
       dataChan.onmessage = e => console.log(`Message from DataChannel '${dataChan.label}' payload '${e.data}'`)
     });
