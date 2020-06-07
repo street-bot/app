@@ -5,6 +5,7 @@ import { Config } from '../config';
 // WebSocket client
 export class WebSocketClient {
   ws: WebSocket;
+  msgCallbacks: Map<string, Function>;
   private robotID: string;
   private host: string;
   private logger: ILogger;
@@ -17,6 +18,12 @@ export class WebSocketClient {
     this.logger = new Logger("WebSocketClient", {
       LogLevel: this.config.logLevel
     });
+    this.msgCallbacks = new Map<string, Function>();
+  }
+
+  // Register callbacks
+  public On(msgType: string, callback: Function): void {
+    this.msgCallbacks.set(msgType, callback);
   }
 
   // Register a client on the Signaler
@@ -37,17 +44,6 @@ export class WebSocketClient {
     }
   }
 
-  public ConnectRTC() {
-    // TODO: Setup WebRTC connection
-    let newMsg = {
-      Type: "Offer",
-      Payload: {
-          SDPStr: "something"
-      }
-    };
-    this.ws.send(JSON.stringify(newMsg))
-  }
-
   public connectWS() {
     this.ws = new WebSocket(this.host);
     this.ws.onopen = () => {
@@ -56,7 +52,7 @@ export class WebSocketClient {
 
 
     this.ws.onmessage = (data: any): void => {
-      this.logger.Trace(data);
+      this.logger.Trace(JSON.stringify(data));
       const parsedMessage = JSON.parse(data.data);
       switch (parsedMessage.Type) {
         // When client registration success
@@ -70,11 +66,18 @@ export class WebSocketClient {
           this.logger.Debug('Received offer response');
           this.logger.Trace(parsedMessage.Payload.SDPStr);
           // TODO: Handle WebRTC offer response
+          const responseFunc = this.msgCallbacks.get(types.OfferResponseMsgType);
+          if (responseFunc) {
+            responseFunc(parsedMessage.Payload.SDPStr);
+          } else {
+            this.logger.Error('OfferResponse callback not registered to establish WebRTC connection');
+          }
           break;
 
         // Catch-all for unhandled types; we shouldn't reach here unless there was an out-of-spec message
         default:
-          console.warn(`Client received unhandled message type: ${parsedMessage}`);
+          this.logger.Warn(`Client received unhandled message type: ${parsedMessage.type}`);
+          this.logger.Trace(JSON.stringify(data));
           break;
       }
     };

@@ -4,11 +4,11 @@ export interface LogOptions {
 }
 
 export interface ILogger {
-  Trace(msg: string): void
-  Debug(msg: string): void
-  Info(msg: string): void
-  Warn(msg: string): void
-  Error(msg: string): void
+  Trace(msg: any): void
+  Debug(msg: any): void
+  Info(msg: any): void
+  Warn(msg: any): void
+  Error(msg: any): void
 }
 
 interface stringNumberMap {
@@ -31,34 +31,33 @@ export class Logger {
     const level = options ? options.LogLevel : "INFO";  // Default INFO log level if no options specified
     this.logLevel = level in logLevels ? level : "INFO"; // Default INFO log level if invalid log level
     this.context = context ? ` - ${context}` : "";  // Format the logger context or nothing
-    console.log(`Log level: ${this.logLevel}`);
   }
 
-  public Trace(msg: string) {
+  public Trace(msg: any) {
     if (logLevels[this.logLevel] <= logLevels['TRACE']) {
       console.log(`%cTRACE${this.context} : %c${msg}`, 'color:gray', 'color:black');
     }
   }
 
-  public Debug(msg: string) {
+  public Debug(msg: any) {
     if (logLevels[this.logLevel] <= logLevels['DEBUG']) {
       console.log(`%cDEBUG${this.context}: %c${msg}`, 'color:black', 'color:black');
     }
   }
 
-  public Info(msg: string) {
+  public Info(msg: any) {
     if (logLevels[this.logLevel] <= logLevels['INFO']) {
       console.log(`%cINFO${this.context}: %c${msg}`, 'color:black', 'color:black');
     }
   }
 
-  public Warn(msg: string) {
+  public Warn(msg: any) {
     if (logLevels[this.logLevel] <= logLevels['WARN']) {
       console.log(`%cWARN${this.context}: %c${msg}`, 'color:orange', 'color:black');
     }
   }
 
-  public Error(msg: string) {
+  public Error(msg: any) {
     if (logLevels[this.logLevel] <= logLevels['ERROR']) {
       console.log(`%cERROR:${this.context}: %c${msg}`, 'color:red', 'color:black');
     }
