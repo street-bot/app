@@ -65,7 +65,7 @@ export class WebSocketClient {
         case types.OfferResponseMsgType:
           this.logger.Debug('Received offer response');
           this.logger.Trace(parsedMessage.Payload.SDPStr);
-          // TODO: Handle WebRTC offer response
+          // Handle WebRTC offer response
           const responseFunc = this.msgCallbacks.get(types.OfferResponseMsgType);
           if (responseFunc) {
             responseFunc(parsedMessage.Payload.SDPStr);

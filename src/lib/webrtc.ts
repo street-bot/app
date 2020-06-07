@@ -55,10 +55,10 @@ export class WebRTCClient {
     signalConn.send(JSON.stringify(offerMsg))
   }
 
-  public AddDataChannel(name: string, registerCalllback: (dataChan: RTCDataChannel) => void) {
+  public AddDataChannel(name: string, registerCallback: (dataChan: RTCDataChannel) => void) {
     if(!this.dataChans.get(name)){
       const newDataChan = this.pc.createDataChannel(name);
-      registerCalllback(newDataChan); // Let he user define the onXXX callback events
+      registerCallback(newDataChan); // Let he user define the onXXX callback events
       this.dataChans.set(name, newDataChan);
     } else {
       throw new Error(`WebRTC data channel ${name} is already registered`);
