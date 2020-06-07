@@ -14,7 +14,7 @@ class App extends React.Component {
   }
   
   public componentDidMount() {
-    this.rt.register();
+    this.rt.registerClient();
     printBanner(this.config.versionHash);
   }
 

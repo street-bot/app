@@ -1,6 +1,6 @@
-// WebSocket client
-import cryptoRandomString from 'crypto-random-string';
+import { Logger } from "./logger";
 
+// WebSocket client
 export class WebSocketClient {
     ws: WebSocket; 
     private session: string;
@@ -9,12 +9,13 @@ export class WebSocketClient {
     constructor(host: string) {
         this.host = host;
         this.session = "";
+        const logger = new Logger();
+        logger.Error("test");
+
     }
 
-    public register() {
-        console.log(this.host);
-        this.session = cryptoRandomString({length: 32, type: 'url-safe'});
-        this.ws = new WebSocket(this.host+"?token=" + this.session);
+    public registerClient() {
+        this.ws = new WebSocket(this.host);
         this.ws.onopen = () => {
             console.log("connected!");
             const p = {
@@ -26,6 +27,7 @@ export class WebSocketClient {
             this.ws.send(JSON.stringify(p));
             console.log("sent registration!");
         };
+        
     
         this.ws.onmessage = (data: any): void => {
           const message = JSON.parse(data.data);
@@ -46,7 +48,7 @@ export class WebSocketClient {
 
         this.ws.onclose = () => {
             setTimeout(() => {
-                this.register();
+                this.registerClient();
             }, 1000);
             console.log('connection closed!');
         }
