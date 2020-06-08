@@ -51,10 +51,9 @@ export class ControlTerminal extends React.Component {
 
   public render() {
     return(
-      <div>
-        <button onClick={() => this.startStream()}>Connect</button>
-        <button onClick={() => this.registerClient()}>Register</button>
-        Video<br />
+      <div className="container mt-4">
+        <button className="btn btn-primary mx-2" onClick={() => this.startStream()}>Connect</button>
+        <button className="btn btn-primary mx-2" onClick={() => this.registerClient()}>Register</button>
         <div id="remoteVideos"></div> <br />
       </div>
     )
