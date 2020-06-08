@@ -150,10 +150,12 @@ export class ControlTerminal extends React.Component {
     return(
       // For now we are using the document-level keystroke events; in the future we should migrate to only the control terminal's scope
       // <div onKeyDown={this.handleKeyDown} onKeyUp={this.handleKeyUp}>\
-      <div>
+      <div className="container mt-4">
         <button onClick={() => this.startStream()}>Connect</button>
         <button onClick={() => this.registerClient()}>Register</button>
         Video<br />
+        <button className="btn btn-primary mx-2" onClick={() => this.startStream()}>Connect</button>
+        <button className="btn btn-primary mx-2" onClick={() => this.registerClient()}>Register</button>
         <div id="remoteVideos"></div> <br />
       </div>
     )
