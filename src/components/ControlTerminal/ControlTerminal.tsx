@@ -4,6 +4,10 @@ import { WebRTCClient } from '../../lib/webrtc';
 import { Config } from '../../config';
 import * as types from "../../types";
 import { Logger, ILogger } from "../../lib/logger";
+import { VideoFrame, PointMap } from '../MediaBlocks';
+import StatusBlock from '../Status/StatusBlock';
+import { NavigationMap } from '../MediaBlocks/NavigationMap';
+
 
 
 export class ControlTerminal extends React.Component {
@@ -150,13 +154,46 @@ export class ControlTerminal extends React.Component {
     return(
       // For now we are using the document-level keystroke events; in the future we should migrate to only the control terminal's scope
       // <div onKeyDown={this.handleKeyDown} onKeyUp={this.handleKeyUp}>\
-      <div className="container mt-4">
-        <button onClick={() => this.startStream()}>Connect</button>
-        <button onClick={() => this.registerClient()}>Register</button>
-        Video<br />
-        <button className="btn btn-primary mx-2" onClick={() => this.startStream()}>Connect</button>
-        <button className="btn btn-primary mx-2" onClick={() => this.registerClient()}>Register</button>
-        <div id="remoteVideos"></div> <br />
+      <div className="container py-2 mx-auto">
+        <div className="row px-0 mx-0">
+          <div className="col-lg-6 px-0 mx-0 d-inline">
+            <div className="col px-0 align-items-center my-2">
+              <button
+                className="btn btn-primary mx-2"
+                onClick={() => this.startStream()}
+              >
+                Connect Control
+              </button>
+              <button
+                className="btn btn-primary mx-2"
+                onClick={() => this.registerClient()}
+              >
+                Connect Robot
+              </button>
+            </div>
+            <div className="w-100" />
+            <div className="col px-0 mx-0">
+              <VideoFrame />
+            </div>
+          </div>
+          <div className="col px-0 d-flex justify-content-center align-items-center">
+            <StatusBlock />
+          </div>
+          <div className="col px-0 d-flex flex-column align-items-center">
+            <div className="de-inline-block my-3">Point Map:</div>
+            <div className="col px-0">
+              <PointMap />
+            </div>
+          </div>
+        </div>
+        <div className="row">
+          <div className="col px-0 d-flex flex-column">
+            <div className="text-left my-3">Navigation Map:</div>
+            <div className="col px-0 align-items-center">
+              <NavigationMap />
+            </div>
+          </div>
+        </div>
       </div>
     )
   }

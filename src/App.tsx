@@ -4,9 +4,8 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 
 import { printBanner } from './lib/banner';
 import { Config } from './config';
-import { ControlTerminal } from './components/controlTerminal';
+import { ControlTerminal } from './components/ControlTerminal';
 import SiteNav from './components/Nav/SiteNav';
-import { MainBody } from './components/Dashboard/MainBody';
 
 class App extends React.Component {
   private config: Config;
@@ -27,12 +26,8 @@ class App extends React.Component {
     return(
       <div className="App">
         <SiteNav />
-        <MainBody 
-          connected={this.state.connected} 
-          setConnected={(newState: boolean) => this.setState({connected: newState})} 
-        />
-      <ControlTerminal />
-    </div>
+        <ControlTerminal />
+      </div>
     );
   }
 };
