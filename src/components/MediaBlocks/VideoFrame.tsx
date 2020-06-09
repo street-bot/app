@@ -6,9 +6,7 @@ interface Props {
 export class VideoFrame extends React.Component<Props> {
   public render() {
     return (
-      <div id={this.props.id} className="alert alert-primary" role="alert" style={{minWidth: "640px", minHeight: "480px"}}>
-      This is a video placeholder!
-      </div>
+      <video id={this.props.id} width="640" height="480" autoPlay controls/>
     )
   }
 }

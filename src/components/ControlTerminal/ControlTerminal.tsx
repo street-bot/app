@@ -34,7 +34,7 @@ export class ControlTerminal extends React.Component {
         username: 'nasir75401@mailcupp.com',
         credential: 'streetbot'
       }
-    ]);
+    ], 'remoteVideos');
 
     this.controlState = {
       forward: 0,
