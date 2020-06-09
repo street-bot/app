@@ -2,23 +2,18 @@ import React from 'react';
 import './App.css';
 import { printBanner } from './lib/banner';
 import { Config } from './config';
-import {WebSocketClient} from './lib/websocket'
+import { ControlTerminal } from './components/controlTerminal';
+
 class App extends React.Component {
-  config: Config
-  rt: WebSocketClient
+  private config: Config;
 
   constructor(props: any) {
     super(props);
     this.config = new Config();
-    this.rt = new WebSocketClient(this.config.signalingHost);
-  }
-  
-  public componentDidMount() {
-    this.rt.registerClient();
-    printBanner(this.config.versionHash);
   }
 
-  public componentWillUnmount() {
+  public componentDidMount() {
+    printBanner(this.config.versionHash);
   }
 
   public render() {
@@ -29,6 +24,7 @@ class App extends React.Component {
           streetbot-app
         </p>
       </header>
+      <ControlTerminal />
     </div>
     )
   }
