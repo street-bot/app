@@ -1,9 +1,14 @@
 import React from 'react'
 
-export const VideoFrame = () => {
+interface Props {
+  id: string;
+}
+export class VideoFrame extends React.Component<Props> {
+  public render() {
     return (
-        <div className="alert alert-primary" role="alert" style={{minWidth: "640px", minHeight: "480px"}}>
-            This is a video placeholder!
-        </div>
+      <div id={this.props.id} className="alert alert-primary" role="alert" style={{minWidth: "640px", minHeight: "480px"}}>
+      This is a video placeholder!
+      </div>
     )
+  }
 }
