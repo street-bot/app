@@ -37,14 +37,21 @@ export class ControlTerminal extends React.Component {
       right: 0,
       speedLevel: 0
     };
+    this.handleKeyDown = this.handleKeyDown.bind(this);
+    this.handleKeyUp = this.handleKeyUp.bind(this);
   }
 
   public componentDidMount() {
     this.wsc.connectWS();
+    // Register keystrokes
+    document.addEventListener("keydown", this.handleKeyDown, false);
+    document.addEventListener("keyup", this.handleKeyUp, false);
   }
 
   public componentWillUnmount() {
     this.wsc.close()
+    document.removeEventListener("keydown", this.handleKeyDown, false);
+    document.removeEventListener("keyup", this.handleKeyUp, false);
   }
 
   private sendControlState = (): void => {
@@ -52,6 +59,65 @@ export class ControlTerminal extends React.Component {
     if (this.rtc.DataChannel('control')?.readyState === "open") {
       this.rtc.DataChannel('control')?.send(msg);
       this.logger.Trace(`Sent control message: ${msg}`);
+    }
+  }
+
+  handleKeyDown = (event: any): void => {
+    if (!event.repeat){
+      let key: string = String.fromCharCode(event.keyCode);
+      this.controlState.speedLevel = 0;
+      // Change control state depending on keypress
+      switch(key){
+        case "W":
+          this.controlState.forward = 50;
+          break;
+        case "S":
+          this.controlState.forward = -50;
+          break;
+        case "A":
+          this.controlState.right = -50;
+          break;
+        case "D":
+          this.controlState.right = 50;
+          break;
+        // speedLevel controls
+        case "O":
+          this.controlState.speedLevel = 1;
+          break;
+        case "L":
+          this.controlState.speedLevel = -1;
+          break;
+      }
+      this.sendControlState()
+    }
+  }
+
+  handleKeyUp = (event: any): void => {
+    if (!event.repeat){
+      let key: string = String.fromCharCode(event.keyCode);
+
+      switch(key){
+        case "W":
+          this.controlState.forward = 0;
+          break;
+        case "S":
+          this.controlState.forward = 0;
+          break;
+        case "A":
+          this.controlState.right = 0;
+          break;
+        case "D":
+          this.controlState.right = 0;
+          break;
+        case "O":
+          this.controlState.speedLevel = 0;
+          break;
+        case "L":
+          this.controlState.speedLevel = 0;
+          break;
+      }
+
+      this.sendControlState();
     }
   }
 
@@ -82,6 +148,8 @@ export class ControlTerminal extends React.Component {
 
   public render() {
     return(
+      // For now we are using the document-level keystroke events; in the future we should migrate to only the control terminal's scope
+      // <div onKeyDown={this.handleKeyDown} onKeyUp={this.handleKeyUp}>\
       <div>
         <button onClick={() => this.startStream()}>Connect</button>
         <button onClick={() => this.registerClient()}>Register</button>
