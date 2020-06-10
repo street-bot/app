@@ -7,17 +7,17 @@ export class WebRTCClient {
   private dataChans: Map<string, RTCDataChannel>;
   private logger: ILogger;
   private config: Config;
-  private offer: string;  // SDP Offer object
+  private videoElement: string;
 
-  constructor(iceServerList: types.IICEServerConfig[]) {
+  constructor(iceServerList: types.IICEServerConfig[], videoElement: string) {
     this.config = new Config();
     this.dataChans = new Map<string, RTCDataChannel>();
     this.logger = new Logger("WebRTC", {
       LogLevel: this.config.logLevel
     });
+    this.videoElement = videoElement;
 
     // Set up RTCPeerConnection with ICE configs
-    this.offer = ""
     this.pc = new RTCPeerConnection({
       iceServers: iceServerList
     });
@@ -44,13 +44,13 @@ export class WebRTCClient {
       }
     }
 
-    this.pc.ontrack = function (event: any) {
-      var el = document.createElement(event.track.kind)
-      el.srcObject = event.streams[0]
-      el.autoplay = true
-      el.controls = true
-
-      document?.getElementById('remoteVideos')?.appendChild(el)
+    this.pc.ontrack = (event: any) => {
+      const el = document.getElementById(this.videoElement) as HTMLVideoElement
+      if (el) {
+        el.srcObject = event.streams[0]
+        el.autoplay = true
+        el.controls = true
+      }
     }
   }
 

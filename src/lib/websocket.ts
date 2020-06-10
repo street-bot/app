@@ -11,6 +11,7 @@ export class WebSocketClient {
   private logger: ILogger;
   private config: Config;
 
+
   constructor(host: string) {
     this.host = host;
     this.robotID = "";
@@ -52,7 +53,7 @@ export class WebSocketClient {
 
 
     this.ws.onmessage = (data: any): void => {
-      this.logger.Trace(JSON.stringify(data));
+      this.logger.Trace(JSON.stringify(data.data));
       const parsedMessage = JSON.parse(data.data);
       switch (parsedMessage.Type) {
         // When client registration success
@@ -72,6 +73,10 @@ export class WebSocketClient {
           } else {
             this.logger.Error('OfferResponse callback not registered to establish WebRTC connection');
           }
+          break;
+
+        case types.ErrMsgType:
+          this.logger.Error(parsedMessage.Payload);
           break;
 
         // Catch-all for unhandled types; we shouldn't reach here unless there was an out-of-spec message

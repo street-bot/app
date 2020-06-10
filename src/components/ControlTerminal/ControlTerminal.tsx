@@ -4,7 +4,9 @@ import { WebRTCClient } from '../../lib/webrtc';
 import { Config } from '../../config';
 import * as types from "../../types";
 import { Logger, ILogger } from "../../lib/logger";
-
+import { VideoFrame, PointMap } from '../MediaBlocks';
+import StatusBlock from '../Status/StatusBlock';
+import { NavigationMap } from '../MediaBlocks/NavigationMap';
 
 export class ControlTerminal extends React.Component {
   private wsc: WebSocketClient;
@@ -30,7 +32,7 @@ export class ControlTerminal extends React.Component {
         username: 'nasir75401@mailcupp.com',
         credential: 'streetbot'
       }
-    ]);
+    ], 'remoteVideos');
 
     this.controlState = {
       forward: 0,
@@ -65,7 +67,7 @@ export class ControlTerminal extends React.Component {
   handleKeyDown = (event: any): void => {
     if (!event.repeat){
       let key: string = String.fromCharCode(event.keyCode);
-      this.controlState.speedLevel = 0;
+      this.controlState.speedLevel = types.SpeedLevelZero;
       // Change control state depending on keypress
       switch(key){
         case "W":
@@ -82,10 +84,10 @@ export class ControlTerminal extends React.Component {
           break;
         // speedLevel controls
         case "O":
-          this.controlState.speedLevel = 1;
+          this.controlState.speedLevel = types.SpeedLevelUp;
           break;
         case "L":
-          this.controlState.speedLevel = -1;
+          this.controlState.speedLevel = types.SpeedLevelDown;
           break;
       }
       this.sendControlState()
@@ -98,22 +100,22 @@ export class ControlTerminal extends React.Component {
 
       switch(key){
         case "W":
-          this.controlState.forward = 0;
+          this.controlState.forward = types.PowerZero;
           break;
         case "S":
-          this.controlState.forward = 0;
+          this.controlState.forward = types.PowerZero;
           break;
         case "A":
-          this.controlState.right = 0;
+          this.controlState.right = types.PowerZero;
           break;
         case "D":
-          this.controlState.right = 0;
+          this.controlState.right = types.PowerZero;
           break;
         case "O":
-          this.controlState.speedLevel = 0;
+          this.controlState.speedLevel = types.SpeedLevelZero;
           break;
         case "L":
-          this.controlState.speedLevel = 0;
+          this.controlState.speedLevel = types.SpeedLevelZero;
           break;
       }
 
@@ -129,7 +131,7 @@ export class ControlTerminal extends React.Component {
         this.logger.Info(`Data channel 'control' opened`)
         setInterval(this.sendControlState, this.config.hbInterval);
       }
-      dataChan.onmessage = e => console.log(`Message from DataChannel '${dataChan.label}' payload '${e.data}'`)
+      dataChan.onmessage = e => console.log(JSON.parse(e.data))
     });
     // Register callback to handle offer response
     this.wsc.On(types.OfferResponseMsgType, (sdpResponse: string) => {
@@ -150,11 +152,46 @@ export class ControlTerminal extends React.Component {
     return(
       // For now we are using the document-level keystroke events; in the future we should migrate to only the control terminal's scope
       // <div onKeyDown={this.handleKeyDown} onKeyUp={this.handleKeyUp}>\
-      <div>
-        <button onClick={() => this.startStream()}>Connect</button>
-        <button onClick={() => this.registerClient()}>Register</button>
-        Video<br />
-        <div id="remoteVideos"></div> <br />
+      <div className="container py-2 mx-auto">
+        <div className="row px-0 mx-0">
+          <div className="col-lg-6 px-0 mx-0 d-inline">
+            <div className="col px-0 align-items-center my-2">
+              <button
+                className="btn btn-primary mx-2"
+                onClick={() => this.startStream()}
+              >
+                Connect Control
+              </button>
+              <button
+                className="btn btn-primary mx-2"
+                onClick={() => this.registerClient()}
+              >
+                Connect Robot
+              </button>
+            </div>
+            <div className="w-100" />
+            <div className="col px-0 mx-0">
+              <VideoFrame id="remoteVideos" />
+            </div>
+          </div>
+          <div className="col px-0 d-flex justify-content-center align-items-center">
+            <StatusBlock />
+          </div>
+          <div className="col px-0 d-flex flex-column align-items-center">
+            <div className="de-inline-block my-3">Point Map:</div>
+            <div className="col px-0">
+              <PointMap />
+            </div>
+          </div>
+        </div>
+        <div className="row">
+          <div className="col px-0 d-flex flex-column">
+            <div className="text-left my-3">Navigation Map:</div>
+            <div className="col px-0 align-items-center">
+              <NavigationMap />
+            </div>
+          </div>
+        </div>
       </div>
     )
   }
