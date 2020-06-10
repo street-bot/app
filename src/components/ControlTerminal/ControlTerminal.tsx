@@ -69,7 +69,7 @@ export class ControlTerminal extends React.Component {
   handleKeyDown = (event: any): void => {
     if (!event.repeat){
       let key: string = String.fromCharCode(event.keyCode);
-      this.controlState.speedLevel = 0;
+      this.controlState.speedLevel = types.SpeedLevelZero;
       // Change control state depending on keypress
       switch(key){
         case "W":
@@ -86,10 +86,10 @@ export class ControlTerminal extends React.Component {
           break;
         // speedLevel controls
         case "O":
-          this.controlState.speedLevel = 0x04; // Increase speed level
+          this.controlState.speedLevel = types.SpeedLevelUp;
           break;
         case "L":
-          this.controlState.speedLevel = 0x02; // Decrease speed level
+          this.controlState.speedLevel = types.SpeedLevelDown;
           break;
       }
       this.sendControlState()
@@ -102,22 +102,22 @@ export class ControlTerminal extends React.Component {
 
       switch(key){
         case "W":
-          this.controlState.forward = 0;
+          this.controlState.forward = types.PowerZero;
           break;
         case "S":
-          this.controlState.forward = 0;
+          this.controlState.forward = types.PowerZero;
           break;
         case "A":
-          this.controlState.right = 0;
+          this.controlState.right = types.PowerZero;
           break;
         case "D":
-          this.controlState.right = 0;
+          this.controlState.right = types.PowerZero;
           break;
         case "O":
-          this.controlState.speedLevel = 0;
+          this.controlState.speedLevel = types.SpeedLevelZero;
           break;
         case "L":
-          this.controlState.speedLevel = 0;
+          this.controlState.speedLevel = types.SpeedLevelZero;
           break;
       }
 
