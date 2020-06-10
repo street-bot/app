@@ -8,8 +8,6 @@ import { VideoFrame, PointMap } from '../MediaBlocks';
 import StatusBlock from '../Status/StatusBlock';
 import { NavigationMap } from '../MediaBlocks/NavigationMap';
 
-
-
 export class ControlTerminal extends React.Component {
   private wsc: WebSocketClient;
   private rtc: WebRTCClient;
@@ -133,7 +131,7 @@ export class ControlTerminal extends React.Component {
         this.logger.Info(`Data channel 'control' opened`)
         setInterval(this.sendControlState, this.config.hbInterval);
       }
-      dataChan.onmessage = e => console.log(`Message from DataChannel '${dataChan.label}' payload '${e.data}'`)
+      dataChan.onmessage = e => console.log(JSON.parse(e.data))
     });
     // Register callback to handle offer response
     this.wsc.On(types.OfferResponseMsgType, (sdpResponse: string) => {
