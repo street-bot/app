@@ -9,13 +9,9 @@ import SiteNav from './components/Nav/SiteNav';
 
 class App extends React.Component {
   private config: Config;
-  state: Readonly<{connected: boolean}>;
   constructor(props: any) {
     super(props);
     this.config = new Config();
-    this.state = {
-      connected: false
-    };
   }
 
   public componentDidMount() {
