@@ -86,10 +86,10 @@ export class ControlTerminal extends React.Component {
           break;
         // speedLevel controls
         case "O":
-          this.controlState.speedLevel = 1;
+          this.controlState.speedLevel = 0x04; // Increase speed level
           break;
         case "L":
-          this.controlState.speedLevel = -1;
+          this.controlState.speedLevel = 0x02; // Decrease speed level
           break;
       }
       this.sendControlState()
