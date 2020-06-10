@@ -7,8 +7,12 @@ import { Logger, ILogger } from "../../lib/logger";
 import { VideoFrame, PointMap } from '../MediaBlocks';
 import StatusBlock from '../Status/StatusBlock';
 import { NavigationMap } from '../MediaBlocks/NavigationMap';
+import { connect } from 'react-redux';
 
-export class ControlTerminal extends React.Component {
+interface IProps {
+  connected?: boolean
+}
+class ControlTerminal extends React.Component<IProps> {
   private wsc: WebSocketClient;
   private rtc: WebRTCClient;
   private config: Config;
@@ -17,6 +21,7 @@ export class ControlTerminal extends React.Component {
 
   constructor(props: any) {
     super(props);
+
     this.config = new Config();
     this.logger = new Logger("WebSocketClient", {
       LogLevel: this.config.logLevel
@@ -123,7 +128,7 @@ export class ControlTerminal extends React.Component {
     }
   }
 
-  private startStream() {
+  private startStream = () => {
     this.rtc.AddDataChannel('control', (dataChan: RTCDataChannel) => {
       // Register DataChannel details
       dataChan.onclose = () => this.logger.Info(`Data channel 'control' closed`)
@@ -144,7 +149,12 @@ export class ControlTerminal extends React.Component {
     this.rtc.Connect(this.wsc.ws);
   }
 
-  private registerClient() {
+  private connect = () => {
+    this.wsc.On(types.RegSuccessType, this.startStream)
+    this.registerClient();
+  }
+
+  private registerClient = () => {
     this.wsc.RegisterClient('streetbot-1');
   }
 
@@ -159,12 +169,13 @@ export class ControlTerminal extends React.Component {
               <button
                 className="btn btn-primary mx-2"
                 onClick={() => this.startStream()}
+                disabled={!this.props.connected}
               >
                 Connect Control
               </button>
               <button
                 className="btn btn-primary mx-2"
-                onClick={() => this.registerClient()}
+                onClick={() => {this.connect()}}
               >
                 Connect Robot
               </button>
@@ -197,4 +208,10 @@ export class ControlTerminal extends React.Component {
   }
 }
 
-export default ControlTerminal;
+const mapStateToProps = (state: any, ownProps:any) => {
+  return {
+    connected: state.connectivity.connected
+  }
+}
+
+export default connect(mapStateToProps)(ControlTerminal);
