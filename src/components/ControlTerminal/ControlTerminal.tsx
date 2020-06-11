@@ -13,6 +13,7 @@ import Slider from '@material-ui/core/Slider';
 import {store} from '../../store';
 import { changeConnectionState } from '../../actions/connectivity';
 import { changeForwardPower, changeHorizontalPower } from '../../actions/controlState';
+import * as dataChannels from '../../lib/dataChannels';
 
 interface IProps {
   connected?: boolean
@@ -71,8 +72,8 @@ class ControlTerminal extends React.Component<IProps> {
 
   private sendControlState = (): void => {
     let msg = JSON.stringify(this.controlState);
-    if (this.rtc.DataChannel('control')?.readyState === "open") {
-      this.rtc.DataChannel('control')?.send(msg);
+    if (this.rtc.DataChannel(dataChannels.ControlChannelName)?.readyState === "open") {
+      this.rtc.DataChannel(dataChannels.ControlChannelName)?.send(msg);
       this.logger.Trace(`Sent control message: ${msg}`);
     }
   }
@@ -138,15 +139,16 @@ class ControlTerminal extends React.Component<IProps> {
 
   private startStream = () => {
     this.rtc.NewConnection();
-    this.rtc.AddDataChannel('control', (dataChan: RTCDataChannel) => {
-      // Register DataChannel details
-      dataChan.onclose = () => this.logger.Info(`Data channel 'control' closed`)
-      dataChan.onopen = () => {
-        this.logger.Info(`Data channel 'control' opened`)
-        this.hb = setInterval(this.sendControlState, this.config.hbInterval);
-      }
-      dataChan.onmessage = e => console.log(JSON.parse(e.data))
-    });
+
+    // Robot control channel
+    this.rtc.AddDataChannel(dataChannels.ControlChannelName, dataChannels.BuildControlChannel(this.logger, this.hb, this.config, this.sendControlState));
+
+    // GPS data channel
+    this.rtc.AddDataChannel(dataChannels.GPSChannelName, dataChannels.BuildGPSChannel(this.logger));
+
+    // Lidar data channel
+    this.rtc.AddDataChannel(dataChannels.LidarChannelName, dataChannels.BuildLidarChannel(this.logger));
+
     // Register callback to handle offer response
     this.wsc.On(types.OfferResponseMsgType, (sdpResponse: string) => {
       try {
