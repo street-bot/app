@@ -1,11 +1,28 @@
-import { CHANGE_POWER , IControlState } from '../actions/controlState';
+import * as controlState from '../actions/controlState';
 
-const controlState = (state = [], action: IControlState) => {
+const initialState = {
+  forwardPower: 0,
+  horizontalPower: 0
+}
+
+const controlStateReducer = (state: any, action: any) => {
+  if(!state) {
+    state = initialState;
+  }
   switch (action.type) {
-    case CHANGE_POWER:
+    case controlState.CHANGE_FORWARD_POWER:
       return (
         {
-          power: action.power
+          forwardPower: action.forwardPower,
+          horizontalPower: state.horizontalPower
+        }
+      )
+
+    case controlState.CHANGE_HORIZONTAL_POWER:
+      return (
+        {
+          horizontalPower: action.horizontalPower,
+          forwardPower: state.forwardPower,
         }
       )
 
@@ -14,4 +31,4 @@ const controlState = (state = [], action: IControlState) => {
   }
 }
 
-export default controlState
+export default controlStateReducer

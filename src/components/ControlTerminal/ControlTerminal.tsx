@@ -5,15 +5,19 @@ import { Config } from '../../config';
 import * as types from "../../types";
 import { Logger, ILogger } from "../../lib/logger";
 import { VideoFrame, PointMap } from '../MediaBlocks';
-import StatusBlock from '../Status/StatusBlock';
 import { NavigationMap } from '../MediaBlocks/NavigationMap';
 import { connect } from 'react-redux';
 import { ConnectButton } from '../Buttons';
+import Button from '@material-ui/core/Button';
+import Slider from '@material-ui/core/Slider';
 import {store} from '../../store';
-import {changeConnectionState} from '../../actions/connectivity';
+import { changeConnectionState } from '../../actions/connectivity';
+import { changeForwardPower, changeHorizontalPower } from '../../actions/controlState';
 
 interface IProps {
   connected?: boolean
+  forwardPower: number
+  horizontalPower: number
 }
 class ControlTerminal extends React.Component<IProps> {
   private wsc: WebSocketClient;
@@ -79,16 +83,16 @@ class ControlTerminal extends React.Component<IProps> {
       // Change control state depending on keypress
       switch(key){
         case "W":
-          this.controlState.forward = 50;
+          this.controlState.forward = this.props.forwardPower;
           break;
         case "S":
-          this.controlState.forward = -50;
+          this.controlState.forward = -this.props.forwardPower;
           break;
         case "A":
-          this.controlState.right = -50;
+          this.controlState.right = -this.props.horizontalPower;
           break;
         case "D":
-          this.controlState.right = 50;
+          this.controlState.right = this.props.horizontalPower;
           break;
         // speedLevel controls
         case "O":
@@ -171,6 +175,18 @@ class ControlTerminal extends React.Component<IProps> {
     this.wsc.RegisterClient('streetbot-1');
   }
 
+  private sliderForwardChange = (event: any, newValue: any) => {
+    store.dispatch(changeForwardPower(newValue));
+  }
+
+  private sliderHorizontalChange = (event: any, newValue: any) => {
+    store.dispatch(changeHorizontalPower(newValue));
+  }
+
+  private syncPowers = () => {
+    store.dispatch(changeHorizontalPower(this.props.forwardPower));
+  }
+
   public render() {
     return(
       // For now we are using the document-level keystroke events; in the future we should migrate to only the control terminal's scope
@@ -188,18 +204,39 @@ class ControlTerminal extends React.Component<IProps> {
                 Connect Robot
               </ConnectButton>
             </div>
-            <div className="w-100" />
-            <div className="col px-0 mx-0">
+            <div className="col px-0 mx-0" >
               <VideoFrame id="remoteVideos" />
             </div>
           </div>
-          <div className="col px-0 d-flex justify-content-center align-items-center">
-            <StatusBlock />
+          <div className="col px-0 d-flex justify-content-center align-items-center" >
           </div>
           <div className="col px-0 d-flex flex-column align-items-center">
             <div className="de-inline-block my-3">Point Map:</div>
             <div className="col px-0">
               <PointMap />
+              <div> Forward Power: {this.props.forwardPower}% </div>
+              <Slider
+                onChange={this.sliderForwardChange}
+                aria-labelledby="continuous-slider"
+                value={this.props.forwardPower}
+                step={1}
+                min={0}
+                max={100}
+                disabled={!this.props.connected}
+              />
+              <div> Horizontal Power: {this.props.horizontalPower}% </div>
+              <Slider
+                onChange={this.sliderHorizontalChange}
+                aria-labelledby="continuous-slider"
+                value={this.props.horizontalPower}
+                step={1}
+                min={0}
+                max={100}
+                disabled={!this.props.connected}
+              />
+              <Button variant="contained" color="primary" onClick={this.syncPowers} disabled={!this.props.connected}>
+                Sync Power
+              </Button>
             </div>
           </div>
         </div>
@@ -217,8 +254,11 @@ class ControlTerminal extends React.Component<IProps> {
 }
 
 const mapStateToProps = (state: any, ownProps:any) => {
+  console.log(state)
   return {
-    connected: state.connectivity.connected
+    connected: state.connectivity.connected,
+    forwardPower: state.controlState.forwardPower,
+    horizontalPower: state.controlState.horizontalPower
   }
 }
 
