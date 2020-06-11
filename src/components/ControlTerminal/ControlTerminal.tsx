@@ -254,7 +254,6 @@ class ControlTerminal extends React.Component<IProps> {
 }
 
 const mapStateToProps = (state: any, ownProps:any) => {
-  console.log(state)
   return {
     connected: state.connectivity.connected,
     forwardPower: state.controlState.forwardPower,
