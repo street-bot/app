@@ -8,6 +8,7 @@ export class WebRTCClient {
   private logger: ILogger;
   private config: Config;
   private videoElement: string;
+  private iceServerList: types.IICEServerConfig[];
 
   constructor(iceServerList: types.IICEServerConfig[], videoElement: string) {
     this.config = new Config();
@@ -16,26 +17,45 @@ export class WebRTCClient {
       LogLevel: this.config.logLevel
     });
     this.videoElement = videoElement;
-
-    // Set up RTCPeerConnection with ICE configs
-    this.pc = new RTCPeerConnection({
-      iceServers: iceServerList
-    });
+    this.iceServerList = iceServerList;
   }
 
   public DataChannel(name: string): RTCDataChannel | undefined {
     return this.dataChans.get(name);
   }
 
-  public async Connect(signalConn: WebSocket) {
+  public Disconnect = (): void => {
+    for (const key of Array.from(this.dataChans.keys())) {
+      this.RemoveDataChannel(key);
+    }
+    const el = document.getElementById(this.videoElement) as HTMLVideoElement
+    if (el) {
+      el.srcObject = null
+    }
+    const senders = this.pc.getSenders();
+    senders.forEach((sender) => {
+      this.pc.removeTrack(sender)
+    });
+    this.pc.close();
+  }
+
+  public NewConnection =() => {
+    // Set up RTCPeerConnection with ICE configs
+    this.pc = new RTCPeerConnection({
+      iceServers: this.iceServerList
+    });
+  }
+
+  public Connect(signalConn: WebSocket) {
     // Register ICE transition callbacks
     // Offer to receive 1 video track
     this.pc.addTransceiver('video', {'direction': 'recvonly'})
-    this.pc.createOffer().then(d => this.pc.setLocalDescription(d))
-    this.pc.oniceconnectionstatechange = e => this.logger.Info(this.pc.iceConnectionState)
+    this.pc.createOffer().then(d => this.pc?.setLocalDescription(d))
+
+    this.pc.oniceconnectionstatechange = e => this.logger.Info(this.pc?.iceConnectionState)
     this.pc.onicecandidate = event => {
       if (event.candidate === null) { // Don't recreate offer if a candidate already exists
-        const offer = btoa(JSON.stringify(this.pc.localDescription));
+        const offer = btoa(JSON.stringify(this.pc?.localDescription));
         const offerMsg = new types.OfferMsg({
           SDPStr: offer
         });
@@ -71,9 +91,7 @@ export class WebRTCClient {
       dataChan.close();
       this.dataChans.delete(name);
     } else {
-      throw new Error(`WebRTC data channel ${name} not registered`);
+      this.logger.Warn(`WebRTC data channel ${name} not registered`);
     }
   }
-
-
 }

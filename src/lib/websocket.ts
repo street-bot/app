@@ -65,7 +65,6 @@ export class WebSocketClient {
           store.dispatch(changeConnectionState(true));
           const cb = this.msgCallbacks.get(types.RegSuccessType);
           if (cb) {
-            console.log("here");
             cb(parsedMessage.Payload.RobotID);
           }
           break;
