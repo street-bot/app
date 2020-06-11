@@ -25,6 +25,7 @@ class ControlTerminal extends React.Component<IProps> {
   private config: Config;
   private controlState: types.IControlState;
   private logger: ILogger;
+  private hb: any;
 
   constructor(props: any) {
     super(props);
@@ -142,7 +143,7 @@ class ControlTerminal extends React.Component<IProps> {
       dataChan.onclose = () => this.logger.Info(`Data channel 'control' closed`)
       dataChan.onopen = () => {
         this.logger.Info(`Data channel 'control' opened`)
-        setInterval(this.sendControlState, this.config.hbInterval);
+        this.hb = setInterval(this.sendControlState, this.config.hbInterval);
       }
       dataChan.onmessage = e => console.log(JSON.parse(e.data))
     });
@@ -152,10 +153,15 @@ class ControlTerminal extends React.Component<IProps> {
         try {
           this.rtc.pc.setRemoteDescription(new RTCSessionDescription(JSON.parse(atob(sdpResponse))));
         } catch (e) {
-          alert(e);
+          this.logger.Error(e);
         }
       }
     });
+
+    this.wsc.On(types.RobotDeregistrationMsgType, (RobotID: string) => {
+      this.disconnect();
+      alert(`Robot ${RobotID} has disconnected from signaler!`);
+    })
     this.rtc.Connect(this.wsc.ws);
   }
 
@@ -165,9 +171,12 @@ class ControlTerminal extends React.Component<IProps> {
   }
 
   private disconnect = ():void => {
+    if(this.hb){
+      clearInterval(this.hb); // Stop sending control states
+    }
+
     this.rtc.Disconnect();
     this.wsc.close(); // Disconnect to invoke deregistration
-    this.wsc.connectWS(); // Reconnect to the signaling server
     store.dispatch(changeConnectionState(false));
   }
 

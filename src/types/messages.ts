@@ -1,5 +1,6 @@
 // Message type constants
 export const RobotRegistrationMsgType = 'RReg';
+export const RobotDeregistrationMsgType = 'RDreg';
 export const ClientRegistrationMsgType = 'CReg';
 export const OfferMsgType = 'Offer';
 export const OfferResponseMsgType = 'OfferResponse';
@@ -8,7 +9,7 @@ export const RegSuccessType = 'RegSuccess';
 
 // WebSocket message type
 export interface IWSMessage {
-  Type: string, 
+  Type: string,
   Payload: any,
   ToString(): string
 }
@@ -34,10 +35,10 @@ export class WSMessage implements IWSMessage {
 
   public ToString(): string {
     return JSON.stringify(this);
-  } 
+  }
 }
 
-// Robot registration message 
+// Robot registration message
 export class RobotRegistrationMsg extends WSMessage {
   Payload: IRobotRegistrationPayload;
 
@@ -48,7 +49,7 @@ export class RobotRegistrationMsg extends WSMessage {
   }
 }
 
-// Client registration message 
+// Client registration message
 export class ClientRegistrationMsg extends WSMessage {
   Payload: IRobotRegistrationPayload;
 
@@ -59,7 +60,7 @@ export class ClientRegistrationMsg extends WSMessage {
   }
 }
 
-// SDP Offer message 
+// SDP Offer message
 export class OfferMsg extends WSMessage {
   Payload: ISDPPayload;
 
@@ -70,7 +71,7 @@ export class OfferMsg extends WSMessage {
   }
 }
 
-// SDP Response message 
+// SDP Response message
 export class OfferResponseMsg extends WSMessage {
   Payload: ISDPPayload;
 

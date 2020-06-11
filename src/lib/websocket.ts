@@ -63,9 +63,9 @@ export class WebSocketClient {
           this.robotID = parsedMessage.Payload.RobotID; // Set the RobotID to indicate that client websocket is registered
           this.logger.Info(`Successfully registered with ${this.robotID}`);
           store.dispatch(changeConnectionState(true));
-          const cb = this.msgCallbacks.get(types.RegSuccessType);
-          if (cb) {
-            cb(parsedMessage.Payload.RobotID);
+          const successCB = this.msgCallbacks.get(types.RegSuccessType);
+          if (successCB) {
+            successCB(parsedMessage.Payload.RobotID);
           }
           break;
 
@@ -74,11 +74,21 @@ export class WebSocketClient {
           this.logger.Debug('Received offer response');
           this.logger.Trace(parsedMessage.Payload.SDPStr);
           // Handle WebRTC offer response
-          const responseFunc = this.msgCallbacks.get(types.OfferResponseMsgType);
-          if (responseFunc) {
-            responseFunc(parsedMessage.Payload.SDPStr);
+          const sdpResponseCb = this.msgCallbacks.get(types.OfferResponseMsgType);
+          if (sdpResponseCb) {
+            sdpResponseCb(parsedMessage.Payload.SDPStr);
           } else {
             this.logger.Error('OfferResponse callback not registered to establish WebRTC connection');
+          }
+          break;
+
+        // Robot deregistered
+        case types.RobotDeregistrationMsgType:
+          this.logger.Warn('Robot disconnected from signaler!');
+          // Handle WebRTC offer response
+          var dregCb = this.msgCallbacks.get(types.RobotDeregistrationMsgType);
+          if (dregCb) {
+            dregCb(parsedMessage.Payload.RobotID);
           }
           break;
 
@@ -93,8 +103,6 @@ export class WebSocketClient {
           break;
       }
     };
-
-
 
     this.ws.onclose = () => {
       this.robotID = "";  // Clear the RobotID since we are no longer connected
