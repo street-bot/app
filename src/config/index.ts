@@ -9,7 +9,7 @@ export class Config implements IConfig {
   constructor() {
     this.signalingHost = process.env.NODE_ENV === 'production' ? 'wss://signaler.internal.street-bot.com': 'ws://localhost:8080';
     this.versionHash = process.env.REACT_APP_SHA1 || 'development';
-    this.logLevel = process.env.LOG_LEVEL || 'TRACE';
-    this.hbInterval =  process.env.HB_INTERVAL ? parseInt(process.env.HB_INTERVAL) : 1000;
+    this.logLevel = process.env.LOG_LEVEL || 'INFO';
+    this.hbInterval =  process.env.HB_INTERVAL ? parseInt(process.env.HB_INTERVAL) : 500;
   }
 }
