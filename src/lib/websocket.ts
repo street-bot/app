@@ -1,6 +1,8 @@
 import { Logger, ILogger } from "./logger";
 import * as types from "../types";
 import { Config } from '../config';
+import {store} from '../store';
+import {changeConnectionState} from '../actions/connectivity';
 
 // WebSocket client
 export class WebSocketClient {
@@ -60,6 +62,11 @@ export class WebSocketClient {
         case types.RegSuccessType:
           this.robotID = parsedMessage.Payload.RobotID; // Set the RobotID to indicate that client websocket is registered
           this.logger.Info(`Successfully registered with ${this.robotID}`);
+          store.dispatch(changeConnectionState(true));
+          const cb = this.msgCallbacks.get(types.RegSuccessType);
+          if (cb) {
+            cb(parsedMessage.Payload.RobotID);
+          }
           break;
 
         // When a SDP offer response is received
@@ -86,6 +93,8 @@ export class WebSocketClient {
           break;
       }
     };
+
+
 
     this.ws.onclose = () => {
       this.robotID = "";  // Clear the RobotID since we are no longer connected

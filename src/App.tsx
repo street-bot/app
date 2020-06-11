@@ -4,11 +4,12 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 
 import { printBanner } from './lib/banner';
 import { Config } from './config';
-import { ControlTerminal } from './components/ControlTerminal';
+import ControlTerminal from './components/ControlTerminal';
 import SiteNav from './components/Nav/SiteNav';
 
 class App extends React.Component {
   private config: Config;
+
   constructor(props: any) {
     super(props);
     this.config = new Config();

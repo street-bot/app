@@ -7,8 +7,15 @@ import { Logger, ILogger } from "../../lib/logger";
 import { VideoFrame, PointMap } from '../MediaBlocks';
 import StatusBlock from '../Status/StatusBlock';
 import { NavigationMap } from '../MediaBlocks/NavigationMap';
+import { connect } from 'react-redux';
+import { ConnectButton } from '../Buttons';
+import {store} from '../../store';
+import {changeConnectionState} from '../../actions/connectivity';
 
-export class ControlTerminal extends React.Component {
+interface IProps {
+  connected?: boolean
+}
+class ControlTerminal extends React.Component<IProps> {
   private wsc: WebSocketClient;
   private rtc: WebRTCClient;
   private config: Config;
@@ -17,6 +24,7 @@ export class ControlTerminal extends React.Component {
 
   constructor(props: any) {
     super(props);
+
     this.config = new Config();
     this.logger = new Logger("WebSocketClient", {
       LogLevel: this.config.logLevel
@@ -123,7 +131,8 @@ export class ControlTerminal extends React.Component {
     }
   }
 
-  private startStream() {
+  private startStream = () => {
+    this.rtc.NewConnection();
     this.rtc.AddDataChannel('control', (dataChan: RTCDataChannel) => {
       // Register DataChannel details
       dataChan.onclose = () => this.logger.Info(`Data channel 'control' closed`)
@@ -135,16 +144,30 @@ export class ControlTerminal extends React.Component {
     });
     // Register callback to handle offer response
     this.wsc.On(types.OfferResponseMsgType, (sdpResponse: string) => {
-      try {
-        this.rtc.pc.setRemoteDescription(new RTCSessionDescription(JSON.parse(atob(sdpResponse))));
-      } catch (e) {
-        alert(e);
+      if(this.rtc.pc) {
+        try {
+          this.rtc.pc.setRemoteDescription(new RTCSessionDescription(JSON.parse(atob(sdpResponse))));
+        } catch (e) {
+          alert(e);
+        }
       }
     });
     this.rtc.Connect(this.wsc.ws);
   }
 
-  private registerClient() {
+  private connect = () => {
+    this.wsc.On(types.RegSuccessType, this.startStream)
+    this.registerClient();
+  }
+
+  private disconnect = ():void => {
+    this.rtc.Disconnect();
+    this.wsc.close(); // Disconnect to invoke deregistration
+    this.wsc.connectWS(); // Reconnect to the signaling server
+    store.dispatch(changeConnectionState(false));
+  }
+
+  private registerClient = () => {
     this.wsc.RegisterClient('streetbot-1');
   }
 
@@ -156,18 +179,14 @@ export class ControlTerminal extends React.Component {
         <div className="row px-0 mx-0">
           <div className="col-lg-6 px-0 mx-0 d-inline">
             <div className="col px-0 align-items-center my-2">
-              <button
+              <ConnectButton
                 className="btn btn-primary mx-2"
-                onClick={() => this.startStream()}
-              >
-                Connect Control
-              </button>
-              <button
-                className="btn btn-primary mx-2"
-                onClick={() => this.registerClient()}
+                connected={this.props.connected ? true: false}
+                connectFunc={this.connect}
+                disconnectFunc={this.disconnect}
               >
                 Connect Robot
-              </button>
+              </ConnectButton>
             </div>
             <div className="w-100" />
             <div className="col px-0 mx-0">
@@ -197,4 +216,10 @@ export class ControlTerminal extends React.Component {
   }
 }
 
-export default ControlTerminal;
+const mapStateToProps = (state: any, ownProps:any) => {
+  return {
+    connected: state.connectivity.connected
+  }
+}
+
+export default connect(mapStateToProps)(ControlTerminal);
