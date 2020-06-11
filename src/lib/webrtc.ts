@@ -3,7 +3,7 @@ import { Logger, ILogger } from "./logger";
 import { Config } from '../config';
 
 export class WebRTCClient {
-  pc: RTCPeerConnection;
+  private pc: RTCPeerConnection;
   private dataChans: Map<string, RTCDataChannel>;
   private logger: ILogger;
   private config: Config;
@@ -37,6 +37,15 @@ export class WebRTCClient {
       this.pc.removeTrack(sender)
     });
     this.pc.close();
+    delete this.pc;
+  }
+
+  public SetRemoteDescription = (sdpResponse: string) => {
+    if(this.pc)  {
+      this.pc.setRemoteDescription(new RTCSessionDescription(JSON.parse(atob(sdpResponse))));
+    } else {
+      throw new Error("Attempted to set remote description on a WebRTC client with no PeerConnection!");
+    }
   }
 
   public NewConnection =() => {

@@ -149,12 +149,10 @@ class ControlTerminal extends React.Component<IProps> {
     });
     // Register callback to handle offer response
     this.wsc.On(types.OfferResponseMsgType, (sdpResponse: string) => {
-      if(this.rtc.pc) {
-        try {
-          this.rtc.pc.setRemoteDescription(new RTCSessionDescription(JSON.parse(atob(sdpResponse))));
-        } catch (e) {
-          this.logger.Error(e);
-        }
+      try {
+        this.rtc.SetRemoteDescription(sdpResponse);
+      } catch (e) {
+        this.logger.Error(e);
       }
     });
 
