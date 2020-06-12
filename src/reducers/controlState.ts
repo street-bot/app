@@ -5,7 +5,7 @@ const initialState = {
   horizontalPower: 0
 }
 
-const controlStateReducer = (state: any, action: any) => {
+const controlStateReducer = (state: any, action: controlState.IControlState) => {
   if(!state) {
     state = initialState;
   }

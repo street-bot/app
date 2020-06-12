@@ -13,12 +13,15 @@ import Slider from '@material-ui/core/Slider';
 import {store} from '../../store';
 import { changeConnectionState } from '../../actions/connectivity';
 import { changeForwardPower, changeHorizontalPower } from '../../actions/controlState';
+import { updatePosition } from '../../actions/positioning';
 import * as dataChannels from '../../lib/dataChannels';
+import { ILatLong } from '../../actions/positioning';
 
 interface IProps {
   connected?: boolean
   forwardPower: number
   horizontalPower: number
+  latLong: ILatLong
 }
 class ControlTerminal extends React.Component<IProps> {
   private wsc: WebSocketClient;
@@ -168,6 +171,13 @@ class ControlTerminal extends React.Component<IProps> {
   private connect = () => {
     this.wsc.On(types.RegSuccessType, this.startStream)
     this.registerClient();
+    setInterval(this.dummyGPSFunc, 1000); // TODO: Remove me!
+  }
+
+  // TODO: Add the dispatch to the GPS handler
+  private dummyGPSFunc = () => {
+    console.log('change position!');
+    store.dispatch(updatePosition(this.props.latLong.lat + 0.0001, this.props.latLong.lng + 0.0001));
   }
 
   private disconnect = ():void => {
@@ -217,7 +227,7 @@ class ControlTerminal extends React.Component<IProps> {
               <VideoFrame id="remoteVideos" />
             </div>
           </div>
-          <div className="col px-0 d-flex justify-content-center align-items-center" >
+          <div className="col px-0 mx-0 d-flex justify-content-center align-items-center" >
           </div>
           <div className="col px-0 d-flex flex-column align-items-center">
             <div className="de-inline-block my-3">Point Map:</div>
@@ -249,13 +259,8 @@ class ControlTerminal extends React.Component<IProps> {
             </div>
           </div>
         </div>
-        <div className="row">
-          <div className="col px-0 d-flex flex-column">
-            <div className="text-left my-3">Navigation Map:</div>
-            <div className="col px-0 align-items-center">
-              <NavigationMap />
-            </div>
-          </div>
+        <div className="row d-flex justify-content-start mt-3">
+          <NavigationMap lat={this.props.latLong.lat} lng={this.props.latLong.lng} active={this.props.connected}/>
         </div>
       </div>
     )
@@ -266,7 +271,8 @@ const mapStateToProps = (state: any, ownProps:any) => {
   return {
     connected: state.connectivity.connected,
     forwardPower: state.controlState.forwardPower,
-    horizontalPower: state.controlState.horizontalPower
+    horizontalPower: state.controlState.horizontalPower,
+    latLong: state.positioning
   }
 }
 

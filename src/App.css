@@ -57,3 +57,9 @@
   -o-transition: height 0.6s ease;
   transition: height 0.6s ease;
 }
+
+.leaflet-container {
+  height: 400px;
+  width: 80%;
+  margin: 0 auto;
+}

@@ -1,6 +1,13 @@
 import { CHANGE_CONNECTION, IConnectionState } from '../actions/connectivity';
 
-const connectivity = (state = [], action: IConnectionState) => {
+const initialState = {
+  connected: false
+};
+
+const connectivityReducer = (state: any, action: IConnectionState) => {
+  if(!state) {
+    state = initialState;
+  }
   switch (action.type) {
     case CHANGE_CONNECTION:
       return {
@@ -10,6 +17,6 @@ const connectivity = (state = [], action: IConnectionState) => {
     default:
       return state
   }
-}
+};
 
-export default connectivity
+export default connectivityReducer;
