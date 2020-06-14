@@ -71,7 +71,7 @@ export class PointMap extends React.Component<IProps> {
     const numPts = LidarDataArray?.Angles.length;
     if (numPts){
       for (var i = 0; i < numPts; i++ ){
-        var x = LidarDataArray.Ranges[i] * Math.sin(LidarDataArray.Angles[i] );
+        var x = -LidarDataArray.Ranges[i] * Math.sin(LidarDataArray.Angles[i] );
         var y = LidarDataArray.Ranges[i] * Math.cos(LidarDataArray.Angles[i] );
         // const newPt = new THREE.Vector3().setFromCylindricalCoords(LidarDataArray.Ranges[i], LidarDataArray.Angles[i], 0);
         const newPt = new THREE.Vector3(x, y, 0);
