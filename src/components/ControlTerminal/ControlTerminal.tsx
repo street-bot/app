@@ -10,10 +10,9 @@ import { connect } from 'react-redux';
 import { ConnectButton } from '../Buttons';
 import Button from '@material-ui/core/Button';
 import Slider from '@material-ui/core/Slider';
-import {store} from '../../store';
+import { store } from '../../store';
 import { changeConnectionState } from '../../actions/connectivity';
 import { changeForwardPower, changeHorizontalPower } from '../../actions/controlState';
-import { updatePosition } from '../../actions/positioning';
 import * as dataChannels from '../../lib/dataChannels';
 import { ILatLong } from '../../actions/positioning';
 import { IBatteryState, IFoodBoxState, IFoodBoxLatchState, IControlBoxState } from '../../actions';
@@ -203,13 +202,6 @@ class ControlTerminal extends React.Component<IProps> {
   private connect = () => {
     this.wsc.On(types.RegSuccessType, this.startStream)
     this.registerClient();
-    // setInterval(this.dummyGPSFunc, 1000); // TODO: Remove me!
-  }
-
-  // TODO: Add the dispatch to the GPS handler
-  private dummyGPSFunc = () => {
-    console.log('change position!');
-    store.dispatch(updatePosition(this.props.latLong.lat + 0.0001, this.props.latLong.lng + 0.0001));
   }
 
   private disconnect = ():void => {
