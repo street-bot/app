@@ -5,6 +5,7 @@ import positioningReducer from './positioning';
 import foodBoxTempReducer from './foodBoxTemp';
 import controlBoxTempReducer from './controlBoxTemp';
 import batteryStateReducer from './batteryState';
+import foodBoxLatchStateReducer from './foodBoxLatchState';
 
 
 export default combineReducers({
@@ -14,4 +15,5 @@ export default combineReducers({
   controlState: controlStateReducer,
   connectivity: connectivityReducer,
   positioning: positioningReducer,
+  foodBoxLatch: foodBoxLatchStateReducer
 })
