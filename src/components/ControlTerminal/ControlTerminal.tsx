@@ -94,7 +94,7 @@ class ControlTerminal extends React.Component<IProps> {
 
     if (this.rtc.DataChannel(dataChannels.MiscControlChannelName)?.readyState === "open") {
       this.rtc.DataChannel(dataChannels.MiscControlChannelName)?.send(wrappedMsg);
-      this.logger.Trace(`Sent control message: ${wrappedMsg}`);
+      this.logger.Trace(`Sent misc-control message: ${wrappedMsg}`);
     }
   }
 
