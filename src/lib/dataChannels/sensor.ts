@@ -17,15 +17,19 @@ export function BuildSensorChannel(logger: ILogger) {
 
     dataChan.onmessage = e => {
       const parsedMsg = JSON.parse(e.data);
+      console.log(parsedMsg)
       switch (parsedMsg.Type) {
-        case 'FoodBoxTemp':
+        case 'FoodBoxState':
           store.dispatch(actions.changeFoodBoxTemp(parsedMsg.Msg.Temperature));
           break;
-        case 'ControlBoxTemp':
+        case 'ControlBoxState':
           store.dispatch(actions.changeControlBoxTemp(parsedMsg.Msg.Temperature));
           break;
-        case 'BatteryStateMsg':
+        case 'BatteryState':
           store.dispatch(actions.changeBatteryVoltage(parsedMsg.Msg.Voltage));
+          break
+        case 'FoodBoxLatchState':
+          store.dispatch(actions.changeFoodBoxLatchState(parsedMsg.Msg.Data));
           break
 
         default:
