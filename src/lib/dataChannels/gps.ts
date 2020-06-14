@@ -1,4 +1,6 @@
 import { ILogger } from "../logger";
+import { updatePosition } from '../../actions/positioning';
+import {store} from '../../store';
 
 export const GPSChannelName = 'gps';
 
@@ -14,7 +16,8 @@ export function BuildGPSChannel(logger: ILogger) {
     }
 
     dataChan.onmessage = e => {
-      console.log(JSON.parse(e.data));
+      const parsedMsg = JSON.parse(e.data);
+      store.dispatch(updatePosition(parsedMsg.Latitude, parsedMsg.Longitude));
     }
   }
 }
