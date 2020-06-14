@@ -5,3 +5,4 @@ export * from './foodBoxTemp';
 export * from './controlBoxTemp';
 export * from './batteryVoltage';
 export * from './boxLatchState';
+export * from  './lidarRender';

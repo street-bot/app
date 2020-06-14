@@ -15,7 +15,7 @@ import { changeConnectionState } from '../../actions/connectivity';
 import { changeForwardPower, changeHorizontalPower } from '../../actions/controlState';
 import * as dataChannels from '../../lib/dataChannels';
 import { ILatLong } from '../../actions/positioning';
-import { IBatteryState, IFoodBoxState, IFoodBoxLatchState, IControlBoxState } from '../../actions';
+import { IBatteryState, IFoodBoxState, IFoodBoxLatchState, IControlBoxState, ILidarRenderState } from '../../actions';
 
 interface IProps {
   connected?: boolean
@@ -26,6 +26,7 @@ interface IProps {
   foodBox: IFoodBoxState
   controlBox: IControlBoxState
   foodBoxLatch: IFoodBoxLatchState
+  lidarRender: ILidarRenderState
 }
 class ControlTerminal extends React.Component<IProps> {
   private wsc: WebSocketClient;
@@ -254,9 +255,8 @@ class ControlTerminal extends React.Component<IProps> {
           <div className="col px-0 mx-0 d-flex justify-content-center align-items-center" >
           </div>
           <div className="col px-0 d-flex flex-column align-items-center">
-            <div className="de-inline-block my-3">Point Map:</div>
             <div className="col px-0">
-              <PointMap />
+              <PointMap seqNum={this.props.lidarRender.seqNum}/>
               <div> Forward Power: {this.props.forwardPower}% </div>
               <Slider
                 onChange={this.sliderForwardChange}
@@ -281,16 +281,10 @@ class ControlTerminal extends React.Component<IProps> {
                 Sync Power
               </Button>
               <div>
-                Battery Voltage: {this.props.battery.batVoltage} V
+                Battery: {this.props.battery.batVoltage} V | Control Box Temp: {this.props.controlBox.controlBoxTemp} C
               </div>
               <div>
-                Control Box Temp: {this.props.controlBox.controlBoxTemp} C
-              </div>
-              <div>
-                Food Box Temp: {this.props.foodBox.foodBoxTemp} C
-              </div>
-              <div>
-                Food Box Latch: {this.props.foodBoxLatch.foodBoxLatchOpen ? "Open" : "Closed"}
+                Latch: {this.props.foodBoxLatch.foodBoxLatchOpen ? "Open" : "Closed"} | Food Box Temp: {this.props.foodBox.foodBoxTemp} C
               </div>
             </div>
           </div>
@@ -313,6 +307,7 @@ const mapStateToProps = (state: any, ownProps:any) => {
     foodBox: state.foodBox,
     controlBox: state.controlBox,
     foodBoxLatch: state.foodBoxLatch,
+    lidarRender: state.lidarRender
   }
 }
 
