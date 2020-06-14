@@ -86,6 +86,18 @@ class ControlTerminal extends React.Component<IProps> {
     }
   }
 
+  private sendMiscControl = (Type: string, Msg: any): void => {
+    const wrappedMsg = JSON.stringify({
+      Type,
+      Msg
+    });
+
+    if (this.rtc.DataChannel(dataChannels.MiscControlChannelName)?.readyState === "open") {
+      this.rtc.DataChannel(dataChannels.MiscControlChannelName)?.send(wrappedMsg);
+      this.logger.Trace(`Sent control message: ${wrappedMsg}`);
+    }
+  }
+
   handleKeyDown = (event: any): void => {
     if (!event.repeat){
       let key: string = String.fromCharCode(event.keyCode);
@@ -110,6 +122,15 @@ class ControlTerminal extends React.Component<IProps> {
           break;
         case "L":
           this.controlState.speedLevel = types.SpeedLevelDown;
+          break;
+        // Box latch controls
+        case "I":
+          // Open latch
+          this.sendMiscControl("BoxLatchControl", true);
+          break;
+        case "K":
+          // Close latch
+          this.sendMiscControl("BoxLatchControl", false);
           break;
       }
       this.sendControlState()
@@ -159,6 +180,9 @@ class ControlTerminal extends React.Component<IProps> {
 
     // Sensor data channel
     this.rtc.AddDataChannel(dataChannels.SensorChannelName, dataChannels.BuildSensorChannel(this.logger));
+
+    // Misc control channel
+    this.rtc.AddDataChannel(dataChannels.MiscControlChannelName, dataChannels.BuildMiscControlChannel(this.logger));
 
     // Register callback to handle offer response
     this.wsc.On(types.OfferResponseMsgType, (sdpResponse: string) => {
@@ -275,9 +299,9 @@ class ControlTerminal extends React.Component<IProps> {
               </div>
               <div>
                 Food Box Latch: {this.props.foodBoxLatch.foodBoxLatchOpen ? "Open" : "Closed"}
+              </div>
             </div>
           </div>
-        </div>
         </div>
         <div className="row d-flex justify-content-start mt-3">
           <NavigationMap lat={this.props.latLong.lat} lng={this.props.latLong.lng} active={this.props.connected}/>
@@ -288,7 +312,6 @@ class ControlTerminal extends React.Component<IProps> {
 }
 
 const mapStateToProps = (state: any, ownProps:any) => {
-  console.log(state)
   return {
     connected: state.connectivity.connected,
     forwardPower: state.controlState.forwardPower,

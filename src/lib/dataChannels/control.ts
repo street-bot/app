@@ -16,6 +16,7 @@ export function BuildControlChannel(logger: ILogger, hb: any, config: IConfig, h
     }
 
     dataChan.onmessage = e => {
+      logger.Warn(`Unexpected message received on ${ControlChannelName}!`);
       console.log(JSON.parse(e.data));
     }
   }

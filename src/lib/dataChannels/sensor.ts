@@ -17,7 +17,6 @@ export function BuildSensorChannel(logger: ILogger) {
 
     dataChan.onmessage = e => {
       const parsedMsg = JSON.parse(e.data);
-      console.log(parsedMsg)
       switch (parsedMsg.Type) {
         case 'FoodBoxState':
           store.dispatch(actions.changeFoodBoxTemp(parsedMsg.Msg.Temperature));
