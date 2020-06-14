@@ -6,6 +6,7 @@ import foodBoxTempReducer from './foodBoxTemp';
 import controlBoxTempReducer from './controlBoxTemp';
 import batteryStateReducer from './batteryState';
 import foodBoxLatchStateReducer from './foodBoxLatchState';
+import lidarRenderReducer from './lidarRender';
 
 
 export default combineReducers({
@@ -15,5 +16,6 @@ export default combineReducers({
   controlState: controlStateReducer,
   connectivity: connectivityReducer,
   positioning: positioningReducer,
-  foodBoxLatch: foodBoxLatchStateReducer
+  foodBoxLatch: foodBoxLatchStateReducer,
+  lidarRender: lidarRenderReducer
 })

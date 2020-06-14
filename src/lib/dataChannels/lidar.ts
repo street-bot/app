@@ -1,6 +1,9 @@
-import { ILogger } from "../../lib/logger";
+import { ILogger } from '../../lib/logger';
+import { store } from '../../store';
+import { updateLidarRender } from '../../actions';
 
 export const LidarChannelName = 'lidar';
+export var LidarDataArray: any = {};
 
 export function BuildLidarChannel(logger: ILogger) {
   return function (dataChan: RTCDataChannel) {
@@ -14,7 +17,9 @@ export function BuildLidarChannel(logger: ILogger) {
     }
 
     dataChan.onmessage = e => {
-      console.log(JSON.parse(e.data));
+      const parsedMsg = JSON.parse(e.data);
+      LidarDataArray = parsedMsg;
+      store.dispatch(updateLidarRender(parsedMsg.Header.Seq));
     }
   }
 }
