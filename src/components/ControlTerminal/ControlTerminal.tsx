@@ -16,12 +16,16 @@ import { changeForwardPower, changeHorizontalPower } from '../../actions/control
 import { updatePosition } from '../../actions/positioning';
 import * as dataChannels from '../../lib/dataChannels';
 import { ILatLong } from '../../actions/positioning';
+import { IBatteryState, IFoodBoxState, IControlBoxState } from '../../actions';
 
 interface IProps {
   connected?: boolean
   forwardPower: number
   horizontalPower: number
   latLong: ILatLong
+  battery: IBatteryState
+  foodBox: IFoodBoxState
+  controlBox: IControlBoxState
 }
 class ControlTerminal extends React.Component<IProps> {
   private wsc: WebSocketClient;
@@ -152,6 +156,9 @@ class ControlTerminal extends React.Component<IProps> {
     // Lidar data channel
     this.rtc.AddDataChannel(dataChannels.LidarChannelName, dataChannels.BuildLidarChannel(this.logger));
 
+    // Sensor data channel
+    this.rtc.AddDataChannel(dataChannels.SensorChannelName, dataChannels.BuildSensorChannel(this.logger));
+
     // Register callback to handle offer response
     this.wsc.On(types.OfferResponseMsgType, (sdpResponse: string) => {
       try {
@@ -171,7 +178,7 @@ class ControlTerminal extends React.Component<IProps> {
   private connect = () => {
     this.wsc.On(types.RegSuccessType, this.startStream)
     this.registerClient();
-    setInterval(this.dummyGPSFunc, 1000); // TODO: Remove me!
+    // setInterval(this.dummyGPSFunc, 1000); // TODO: Remove me!
   }
 
   // TODO: Add the dispatch to the GPS handler
@@ -256,6 +263,15 @@ class ControlTerminal extends React.Component<IProps> {
               <Button variant="contained" color="primary" onClick={this.syncPowers} disabled={!this.props.connected}>
                 Sync Power
               </Button>
+              <div>
+                Battery Voltage: {this.props.battery.batVoltage} V
+              </div>
+              <div>
+                Control Box Temp: {this.props.controlBox.controlBoxTemp} C
+              </div>
+              <div>
+                Food Box Temp: {this.props.foodBox.foodBoxTemp} C
+              </div>
             </div>
           </div>
         </div>
@@ -268,11 +284,15 @@ class ControlTerminal extends React.Component<IProps> {
 }
 
 const mapStateToProps = (state: any, ownProps:any) => {
+  console.log(state)
   return {
     connected: state.connectivity.connected,
     forwardPower: state.controlState.forwardPower,
     horizontalPower: state.controlState.horizontalPower,
-    latLong: state.positioning
+    latLong: state.positioning,
+    battery: state.battery,
+    foodBox: state.foodBox,
+    controlBox: state.controlBox,
   }
 }
 
