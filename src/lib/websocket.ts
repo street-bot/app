@@ -1,8 +1,6 @@
 import { Logger, ILogger } from "./logger";
 import * as types from "../types";
 import { Config } from '../config';
-import {store} from '../store';
-import {changeConnectionState} from '../actions/connectivity';
 
 // WebSocket client
 export class WebSocketClient {
@@ -62,7 +60,6 @@ export class WebSocketClient {
         case types.RegSuccessType:
           this.robotID = parsedMessage.Payload.RobotID; // Set the RobotID to indicate that client websocket is registered
           this.logger.Info(`Successfully registered with ${this.robotID}`);
-          store.dispatch(changeConnectionState(true));
           const successCB = this.msgCallbacks.get(types.RegSuccessType);
           if (successCB) {
             successCB(parsedMessage.Payload.RobotID);

@@ -1,6 +1,8 @@
 import * as types from "../types";
 import { Logger, ILogger } from "./logger";
 import { Config } from '../config';
+import {store} from '../store';
+import {changeConnectionState} from '../actions/connectivity';
 
 export class WebRTCClient {
   private pc: RTCPeerConnection;
@@ -61,7 +63,11 @@ export class WebRTCClient {
     this.pc.addTransceiver('video', {'direction': 'recvonly'})
     this.pc.createOffer().then(d => this.pc?.setLocalDescription(d))
 
-    this.pc.oniceconnectionstatechange = e => this.logger.Info(this.pc?.iceConnectionState)
+    this.pc.oniceconnectionstatechange = (e) => {
+      if(this.pc?.iceConnectionState === "connected") {
+        store.dispatch(changeConnectionState(true));
+      }
+    }
     this.pc.onicecandidate = event => {
       if (event.candidate === null) { // Don't recreate offer if a candidate already exists
         const offer = btoa(JSON.stringify(this.pc?.localDescription));
