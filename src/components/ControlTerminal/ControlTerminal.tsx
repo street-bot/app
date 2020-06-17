@@ -16,6 +16,7 @@ import { changeForwardPower, changeHorizontalPower } from '../../actions/control
 import * as dataChannels from '../../lib/dataChannels';
 import { ILatLong } from '../../actions/positioning';
 import { IBatteryState, IFoodBoxState, IFoodBoxLatchState, IControlBoxState, ILidarRenderState } from '../../actions';
+import axios from 'axios';
 
 interface IProps {
   connected?: boolean
@@ -30,7 +31,7 @@ interface IProps {
 }
 class ControlTerminal extends React.Component<IProps> {
   private wsc: WebSocketClient;
-  private rtc: WebRTCClient;
+  private rtc: WebRTCClient | undefined;
   private config: Config;
   private controlState: types.IControlState;
   private logger: ILogger;
@@ -45,17 +46,6 @@ class ControlTerminal extends React.Component<IProps> {
     });
     this.wsc = new WebSocketClient(this.config.signalingHost);
 
-    this.rtc = new WebRTCClient([
-      {
-        urls: 'stun:stun.l.google.com:19302'
-      },
-      {
-        urls: 'turn:numb.viagenie.ca',
-        username: 'nasir75401@mailcupp.com',
-        credential: 'streetbot'
-      }
-    ], 'remoteVideos');
-
     this.controlState = {
       forward: 0,
       right: 0,
@@ -65,7 +55,12 @@ class ControlTerminal extends React.Component<IProps> {
     this.handleKeyUp = this.handleKeyUp.bind(this);
   }
 
-  public componentDidMount() {
+  public async componentDidMount() {
+    const res = await axios.get(this.config.signalingURL + "/iceservers");
+    const iceServers = res.data.iceServers;
+
+    this.rtc = new WebRTCClient(iceServers, 'remoteVideos');
+
     this.wsc.connectWS();
     // Register keystrokes
     document.addEventListener("keydown", this.handleKeyDown, false);
@@ -80,7 +75,7 @@ class ControlTerminal extends React.Component<IProps> {
 
   private sendControlState = (): void => {
     const msg = JSON.stringify(this.controlState);
-    if (this.rtc.DataChannel(dataChannels.ControlChannelName)?.readyState === "open") {
+    if (this.rtc?.DataChannel(dataChannels.ControlChannelName)?.readyState === "open") {
       this.rtc.DataChannel(dataChannels.ControlChannelName)?.send(msg);
       this.logger.Trace(`Sent control message: ${msg}`);
     }
@@ -92,7 +87,7 @@ class ControlTerminal extends React.Component<IProps> {
       Msg
     });
 
-    if (this.rtc.DataChannel(dataChannels.MiscControlChannelName)?.readyState === "open") {
+    if (this.rtc?.DataChannel(dataChannels.MiscControlChannelName)?.readyState === "open") {
       this.rtc.DataChannel(dataChannels.MiscControlChannelName)?.send(wrappedMsg);
       this.logger.Trace(`Sent misc-control message: ${wrappedMsg}`);
     }
@@ -167,37 +162,41 @@ class ControlTerminal extends React.Component<IProps> {
   }
 
   private startStream = () => {
-    this.rtc.NewConnection();
+    if(this.rtc) {
+      this.rtc.NewConnection();
 
-    // Robot control channel
-    this.rtc.AddDataChannel(dataChannels.ControlChannelName, dataChannels.BuildControlChannel(this.logger, this.hb, this.config, this.sendControlState));
+      // Robot control channel
+      this.rtc.AddDataChannel(dataChannels.ControlChannelName, dataChannels.BuildControlChannel(this.logger, this.hb, this.config, this.sendControlState));
 
-    // GPS data channel
-    this.rtc.AddDataChannel(dataChannels.GPSChannelName, dataChannels.BuildGPSChannel(this.logger));
+      // GPS data channel
+      this.rtc.AddDataChannel(dataChannels.GPSChannelName, dataChannels.BuildGPSChannel(this.logger));
 
-    // Lidar data channel
-    this.rtc.AddDataChannel(dataChannels.LidarChannelName, dataChannels.BuildLidarChannel(this.logger));
+      // Lidar data channel
+      this.rtc.AddDataChannel(dataChannels.LidarChannelName, dataChannels.BuildLidarChannel(this.logger));
 
-    // Sensor data channel
-    this.rtc.AddDataChannel(dataChannels.SensorChannelName, dataChannels.BuildSensorChannel(this.logger));
+      // Sensor data channel
+      this.rtc.AddDataChannel(dataChannels.SensorChannelName, dataChannels.BuildSensorChannel(this.logger));
 
-    // Misc control channel
-    this.rtc.AddDataChannel(dataChannels.MiscControlChannelName, dataChannels.BuildMiscControlChannel(this.logger));
+      // Misc control channel
+      this.rtc.AddDataChannel(dataChannels.MiscControlChannelName, dataChannels.BuildMiscControlChannel(this.logger));
 
-    // Register callback to handle offer response
-    this.wsc.On(types.OfferResponseMsgType, (sdpResponse: string) => {
-      try {
-        this.rtc.SetRemoteDescription(sdpResponse);
-      } catch (e) {
-        this.logger.Error(e);
-      }
-    });
+      // Register callback to handle offer response
+      this.wsc.On(types.OfferResponseMsgType, (sdpResponse: string) => {
+        try {
+          this.rtc?.SetRemoteDescription(sdpResponse);
+        } catch (e) {
+          this.logger.Error(e);
+        }
+      });
 
-    this.wsc.On(types.RobotDeregistrationMsgType, (RobotID: string) => {
-      this.disconnect();
-      alert(`Robot ${RobotID} has disconnected from signaler!`);
-    })
-    this.rtc.Connect(this.wsc.ws);
+      this.wsc.On(types.RobotDeregistrationMsgType, (RobotID: string) => {
+        this.disconnect();
+        alert(`Robot ${RobotID} has disconnected from signaler!`);
+      })
+      this.rtc.Connect(this.wsc.ws);
+    } else {
+      this.logger.Error("WebRTC Client is not instantiated!");
+    }
   }
 
   private connect = () => {
@@ -210,7 +209,7 @@ class ControlTerminal extends React.Component<IProps> {
       clearInterval(this.hb); // Stop sending control states
     }
 
-    this.rtc.Disconnect();
+    this.rtc?.Disconnect();
     this.wsc.close(); // Disconnect to invoke deregistration
     store.dispatch(changeConnectionState(false));
   }

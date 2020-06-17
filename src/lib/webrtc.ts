@@ -64,8 +64,10 @@ export class WebRTCClient {
     this.pc.createOffer().then(d => this.pc?.setLocalDescription(d))
 
     this.pc.oniceconnectionstatechange = (e) => {
-      if(this.pc?.iceConnectionState === "connected") {
+      switch(this.pc?.iceConnectionState) {
+      case "connected":
         store.dispatch(changeConnectionState(true));
+        break;
       }
     }
     this.pc.onicecandidate = event => {
