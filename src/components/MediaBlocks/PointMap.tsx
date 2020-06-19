@@ -5,7 +5,10 @@ import { LidarDataArray } from '../../lib/dataChannels/lidar';
 
 interface IProps {
   seqNum: number
+
 }
+
+const WARNING_RADIUS = 2; // meters
 
 export class PointMap extends React.Component<IProps> {
   private mountPoint: any;
@@ -14,6 +17,7 @@ export class PointMap extends React.Component<IProps> {
   private renderer: any;
   private prevSeqNumber: number;  // Previous LiDAR frame sequence number
   private pointStyle: any;
+  private warningPointStyle: any;
   private robotPointStyle: any;
 
   public componentDidMount () {
@@ -24,16 +28,26 @@ export class PointMap extends React.Component<IProps> {
     this.scene = new THREE.Scene();
     this.camera = new THREE.PerspectiveCamera( 55, width/height, 1, 10000 );
     this.renderer = new THREE.WebGLRenderer();
-    this.camera.position.z = 10;
+    this.camera.position.z = 12;
     // TODO: Camera displacement and rotation
 
     this.renderer.setSize(width, height);
     this.mountPoint.appendChild( this.renderer.domElement );
+
+    // Normal red colored points (beyond caution radius)
     this.pointStyle = new THREE.PointsMaterial({
       color: 0xff0000,
       size: 0.1,
       opacity: 1
     });
+
+    // Yellow warning points (within caution radius)
+    this.warningPointStyle = new THREE.PointsMaterial({
+      color: 0xffff00,
+      size: 0.1,
+      opacity: 1
+    });
+
     this.robotPointStyle = new THREE.PointsMaterial({
       color: 0x37eb34,
       size: 0.6,
@@ -57,15 +71,24 @@ export class PointMap extends React.Component<IProps> {
       this.scene.remove(this.scene.children[0]);
     }
 
-    // Draw robot
-    var robotGeometry = new THREE.Geometry();
-    var robotPoint = new THREE.Points(robotGeometry, this.robotPointStyle);
-    this.scene.add(robotPoint);
-    robotGeometry.vertices.push(new THREE.Vector3(0,0,0));
+    // Draw distance visualizers
+    this.addCircle(2);
+    this.addCircle(4);
+    this.addCircle(6);
 
-    var tgeometry = new THREE.Geometry();
-    var pointCloud = new THREE.Points(tgeometry, this.pointStyle);
-    this.scene.add(pointCloud);
+    // Draw robot
+    var geometry = new THREE.BoxGeometry( 0.7, 1.3, 1 );
+    var material = new THREE.MeshBasicMaterial( {color: 0x0000ff} );
+    var cube = new THREE.Mesh( geometry, material );
+    this.scene.add(cube);
+
+    var farPointCloud = new THREE.Geometry();
+    var farPoints = new THREE.Points(farPointCloud, this.pointStyle);
+    this.scene.add(farPoints);
+
+    var nearPointCloud = new THREE.Geometry();
+    var nearPoints = new THREE.Points(nearPointCloud, this.warningPointStyle);
+    this.scene.add(nearPoints);
 
     // Draw Lidar reflections
     const numPts = LidarDataArray?.Angles.length;
@@ -73,18 +96,26 @@ export class PointMap extends React.Component<IProps> {
       for (var i = 0; i < numPts; i++ ){
         var x = -LidarDataArray.Ranges[i] * Math.sin(LidarDataArray.Angles[i] );
         var y = LidarDataArray.Ranges[i] * Math.cos(LidarDataArray.Angles[i] );
-        // const newPt = new THREE.Vector3().setFromCylindricalCoords(LidarDataArray.Ranges[i], LidarDataArray.Angles[i], 0);
         const newPt = new THREE.Vector3(x, y, 0);
-        tgeometry.vertices.push(newPt);
+        if (LidarDataArray.Ranges[i] <= WARNING_RADIUS) {
+          nearPointCloud.vertices.push(newPt);
+        } else {
+          farPointCloud.vertices.push(newPt);
+        }
+
       }
       this.renderer.render( this.scene, this.camera );
     }
+  }
 
-    // tgeometry.verticesNeedUpdate = true;
-    // tgeometry.elementsNeedUpdate = true;
-    // tgeometry.computeVertexNormals();
+  private addCircle(radius: number) {
+    var dashMaterial = new THREE.LineBasicMaterial( { color: 0x808080, opacity: 0.5, linewidth:1  } ),
+    circGeom = new THREE.CircleGeometry( radius, 100  );
 
+    circGeom.vertices.shift();
 
+    var circ = new THREE.LineLoop( circGeom, dashMaterial);
+    this.scene.add( circ );
   }
 
   public render() {
