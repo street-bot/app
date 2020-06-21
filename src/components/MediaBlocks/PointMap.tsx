@@ -77,7 +77,7 @@ export class PointMap extends React.Component<IProps> {
     this.addCircle(6);
 
     // Draw robot
-    var geometry = new THREE.BoxGeometry( 0.7, 1.3, 1 );
+    var geometry = new THREE.BoxGeometry( 0.55, 0.9, 1 );
     var material = new THREE.MeshBasicMaterial( {color: 0x0000ff} );
     var cube = new THREE.Mesh( geometry, material );
     this.scene.add(cube);
